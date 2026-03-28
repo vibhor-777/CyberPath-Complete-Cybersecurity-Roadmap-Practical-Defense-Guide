@@ -134,8 +134,7 @@ Get-WmiObject Win32_Service |
 Get-WmiObject Win32_Service |
     Where-Object {$_.State -eq "Running"} |
     ForEach-Object {
-        $path = $_.PathName -replace '"', '' -replace '\s-.*$', ''   # Strip quotes and args
-        $path = $path.Trim()
+        $path = ($_.PathName -split '\s+[-/]')[0].Trim('"').Trim()   # Strip quotes and CLI args
         if (Test-Path $path) {
             $sig = Get-AuthenticodeSignature -FilePath $path -ErrorAction SilentlyContinue
             [PSCustomObject]@{
@@ -412,7 +411,7 @@ Get-WmiObject Win32_Service | Where-Object {
 
 # Find services where the binary no longer exists (ghost service — may indicate prior malware)
 Get-WmiObject Win32_Service | ForEach-Object {
-    $path = ($_.PathName -replace '"', '' -replace '\s-.*$', '').Trim()
+    $path = ($_.PathName -split '\s+[-/]')[0].Trim('"').Trim()
     if ($path -and !(Test-Path $path)) {
         [PSCustomObject]@{
             Name    = $_.Name
@@ -452,9 +451,10 @@ sudo ss -tlnp | awk 'NR>1 {print $5}' | cut -d: -f2 |
 
 # Detect processes with no associated package (possible unpackaged malware)
 # This checks running processes and whether their binary is part of any installed package
+# Note: Uses dpkg (Debian/Ubuntu); replace with 'rpm -qf' on RHEL/CentOS systems
 ps -eo pid,comm,exe 2>/dev/null | while read pid comm exe; do
     if [ -f "$exe" ]; then
-        if ! dpkg -S "$exe" &>/dev/null 2>&1; then
+        if ! dpkg -S "$exe" &>/dev/null; then
             echo "Unpackaged binary: PID=$pid COMM=$comm EXE=$exe"
         fi
     fi
@@ -471,7 +471,7 @@ find /etc/systemd/system /usr/lib/systemd/system -name "*.service" -perm -002 2>
 Get-WmiObject Win32_Service |
     Where-Object {$_.State -eq "Running"} |
     ForEach-Object {
-        $path = ($_.PathName -replace '"', '' -replace '\s-.*$', '').Trim()
+        $path = ($_.PathName -split '\s+[-/]')[0].Trim('"').Trim()
         if ($path -and (Test-Path $path)) {
             $hash = (Get-FileHash -Path $path -Algorithm SHA256 -ErrorAction SilentlyContinue).Hash
             [PSCustomObject]@{
@@ -893,7 +893,7 @@ function Export-ServiceBaseline {
         @{N='PathName'; E={$_.PathName}},
         StartName,
         @{N='SHA256'; E={
-            $path = ($_.PathName -replace '"', '' -replace '\s-.*$', '').Trim()
+            $path = ($_.PathName -split '\s+[-/]')[0].Trim('"').Trim()
             if ($path -and (Test-Path $path)) {
                 (Get-FileHash -Path $path -Algorithm SHA256 -ErrorAction SilentlyContinue).Hash
             } else { 'PATH_NOT_FOUND' }

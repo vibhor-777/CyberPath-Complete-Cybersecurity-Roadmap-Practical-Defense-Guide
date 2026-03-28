@@ -218,7 +218,12 @@ Or via registry:
 
 ```powershell
 # ⚠️ Lab Environment Only — sets command line inclusion in Event ID 4688
-Set-ItemProperty -Path "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit" `
+$auditKeyPath = "HKLM:\SOFTWARE\Microsoft\Windows\CurrentVersion\Policies\System\Audit"
+# Create the key if it doesn't already exist
+if (-not (Test-Path $auditKeyPath)) {
+    New-Item -Path $auditKeyPath -Force | Out-Null
+}
+Set-ItemProperty -Path $auditKeyPath `
     -Name "ProcessCreationIncludeCmdLine_Enabled" -Value 1 -Type DWord
 ```
 
@@ -706,9 +711,9 @@ Get-WinEvent -FilterHashtable @{
     Format-List
 
 # Search for known suspicious keywords in script blocks
-$suspiciousPatterns = 'IEX|Invoke-Expression|DownloadString|FromBase64String|
-    Net\.WebClient|Invoke-Mimikatz|sekurlsa|LSASS|AmsiBypass|
-    Bypass|EncodedCommand|-enc |-w hidden'
+$suspiciousPatterns = 'IEX|Invoke-Expression|DownloadString|FromBase64String|' +
+    'Net\.WebClient|Invoke-Mimikatz|sekurlsa|LSASS|AmsiBypass|' +
+    'Bypass|EncodedCommand|-enc |-w hidden'
 
 Get-WinEvent -FilterHashtable @{
     LogName = 'Microsoft-Windows-PowerShell/Operational'; Id = 4104

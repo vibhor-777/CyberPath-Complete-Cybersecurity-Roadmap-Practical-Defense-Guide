@@ -107,7 +107,12 @@ grep -v '/usr/sbin/nologin\|/bin/false\|/sbin/nologin' /etc/passwd |
 awk -F: '($3 == 0)' /etc/passwd
 
 # Find accounts with empty passwords (critical security risk)
-sudo awk -F: '($2 == "" || $2 == "!!" )' /etc/shadow
+# Note: '!!' indicates a locked account (no valid password hash set), not an empty password.
+# An empty second field ($2 == "") is the true security risk — it means no password is required.
+sudo awk -F: '($2 == "")' /etc/shadow
+
+# Separately, find locked accounts (!! prefix) — these are fine security-wise but worth auditing
+# sudo awk -F: '($2 ~ /^!/)' /etc/shadow
 
 # Find accounts that have never logged in
 sudo lastlog | grep "Never logged in"
@@ -227,7 +232,7 @@ ls -la /etc/shadow
 # Expected permissions:
 # -rw-r--r-- 1 root root  /etc/passwd     (644)
 # -rw-r----- 1 root shadow /etc/shadow    (640)
-# -rw------- 1 root root  /etc/sudoers   (440)
+# -r--r----- 1 root root  /etc/sudoers   (440)
 ```
 
 #### chmod — Changing Permissions
