@@ -204,7 +204,8 @@ All three major providers follow the same conceptual model but express it differ
 
 ```
 AWS S3: Server-side encryption
-  Default (2023+): SSE-S3 enabled by default ← AWS changed default
+  Default (January 2023): SSE-S3 enabled by default for all new objects
+  (AWS announcement: https://aws.amazon.com/about-aws/whats-new/2023/01/amazon-s3-automatically-encrypts-new-objects/)
   But: bucket policies, ACLs, and public access → still customer's responsibility
 
 Azure Blob Storage:
