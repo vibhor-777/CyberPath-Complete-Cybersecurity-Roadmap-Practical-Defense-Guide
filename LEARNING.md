@@ -182,7 +182,7 @@ Before moving to Advanced, you should be able to:
 ## Advanced Track (Months 10–18)
 
 **Prerequisites:** Completion of Intermediate Track.  
-**Goal:** Develop IR, forensics, and malware analysis skills; target OSCP / CASP+.
+**Goal:** Develop IR, forensics, and malware analysis skills; target GCIH / CASP+.
 
 ### Module 8 — Malware Defense (`07_Malware_Defense/`)
 
